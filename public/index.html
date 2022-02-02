@@ -5,6 +5,9 @@
     <title>WordOut</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
+      *{
+        font-family: sans-serif;
+      }
       button {
         background: #aaa;
         height: 50px;
@@ -40,7 +43,7 @@
       }
       .keyboard {
         position: absolute;
-        bottom: -300px;
+        bottom: -200px;
       }
       .wordrow {
         width: 320px;
@@ -67,6 +70,38 @@
         text-align: center;
         font-family: sans-serif;
         margin-bottom: 40px;
+      }
+      .alert {
+        background-color: #fff;
+        width: 300px;
+        height: 400px;
+        color: #010101;
+        text-align: center;
+        font-family: Helvetica, sans-serif;
+        position: absolute;
+        border-radius: 10px;
+        left: calc(50% - 150px);
+        z-index: 100;
+        box-shadow: #999 0 0 10px 5px;
+      }
+      .green-box {
+        background-color: #6aaa64;
+        height: 30px;
+        width: 30px;
+        padding: 10px;
+        float: left;
+        margin: 5px;
+        font-size: 20px;
+        font-weight: bolder;
+        color: white;
+      }
+      .login {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        background-color: #fff;
+        z-index: 100;
+        left: 0;
       }
       @media only screen and (max-width: 600px) {
         .game {
@@ -96,7 +131,7 @@
           margin-left: calc(50% - 120px);
         }
         .keyboard {
-            position: fixed;
+          position: fixed;
           bottom: 10px;
           min-width: 320px;
           margin-left: calc(50% - 160px);
@@ -128,16 +163,68 @@
           margin-left: 1px;
         }
       }
+      .input {
+        width: 250px;
+        height: 30px;
+        margin: 10px;
+        margin-left: calc(50% - 125px);
+        font-size: 20px;
+        border-radius: 5px;
+        border: solid 1px #333;
+        text-align: center;
+      }
+      .login-btn {
+        width: 255px;
+        height: 40px;
+        background-color: black;
+        color: #fff;
+        font-size: 18px;
+        margin: 10px;
+        margin-left: calc(50% - 125px);
+      }
+      .alert-2 {
+        background-color: #fff;
+        width: 300px;
+        height: 200px;
+        color: #010101;
+        text-align: center;
+        font-family: Helvetica, sans-serif;
+        position: absolute;
+        border-radius: 10px;
+        left: calc(50% - 150px);
+        z-index: 99;
+        box-shadow: #999 0 0 10px 5px;
+        display: none;
+      }
+      .tryagain{
+        background-color: black;
+        color: white;
+        font-size: 20px;
+        width: 200px;
+      }
     </style>
   </head>
   <body>
-    <div></div>
+    <div class="login">
+      <div class="title">WORDOUT</div>
+      <input id="nickname" class="input" placeholder="Nickname" />
+      <!-- <input class="input" type="password" placeholder="Password" /> -->
+      <button onclick="login()" class="login-btn">ENTER</button>
+    </div>
+    <div id="alert"></div>
+    <div class="alert-2">
+      <br />
+      <h2>OOPS.....</h2>
+      <button onclick="hideoops()" class="tryagain">TRY AGAIN</button>
+    </div>
     <div class="game">
       <div class="navigation">
         <div></div>
         <div class="title">WORDOUT</div>
         <div></div>
       </div>
+      <div align="center"><h3 id="score">SCORE: 0</h3></div>
+      <div align="center"><h3 id="online">1 Online</h3></div>
       <div class="screen">
         <div class="wordrow">
           <div class="letter"></div>
@@ -220,43 +307,116 @@
       </div>
     </div>
     <script>
+      let nickname = "";
+      var ws = new WebSocket("ws://api.readcast.in:8080");
+      function login() {
+        nickname = document.getElementById("nickname").value;
+        let login = document.getElementsByClassName("login")[0];
+        login.style.display = "none";
+        status = "playing";
+      }
+      function oops() {
+        document.getElementsByClassName("alert-2")[0].style.display="block";
+      }
+      function hideoops() {
+        document.getElementsByClassName("alert-2")[0].style.display="none";
+        resetGame();
+      }
+      function resetGame() {
+        var line = `<div class="wordrow">
+          <div class="letter"></div>
+          <div class="letter"></div>
+          <div class="letter"></div>
+          <div class="letter"></div>
+          <div class="letter"></div>
+        </div>`;
+        line = line + line + line + line + line + line;
+        document.getElementsByClassName("screen")[0].innerHTML = line;
+        attempt = 0;
+        status = "playing";
+      }
+      ws.onmessage = function (evt) {
+        var received_msg = JSON.parse(evt.data);
+        if (received_msg.type === "online") {
+          document.getElementById("online").innerHTML= `${received_msg.online} Online`
+        }else
+        if (received_msg.type === "score") {
+          document.getElementById("score").innerHTML= `SCORE: ${received_msg.score}`
+        }else
+        if (received_msg.type === "broadcast") {
+          random_id = random = Math.floor(Math.random() * 1000);
+          document.getElementById(
+            "alert"
+          ).innerHTML += `<div id="alert${random_id}" class="alert">
+        <br />
+        <h2>ROUND OVER</h2>
+        <h4>PREVIOUS ROUND SOLUTION</h4>
+        <div class="green-box">${received_msg.solution[0]}</div>
+        <div class="green-box">${received_msg.solution[1]}</div>
+        <div class="green-box">${received_msg.solution[2]}</div>
+        <div class="green-box">${received_msg.solution[3]}</div>
+        <div class="green-box">${received_msg.solution[4]}</div>
+        <br />
+        <br />
+        <br />
+        <h4>SOLVED BY</h4>
+        <h3>${received_msg.winner}</h3>
+        <h4>NEXT ROUND STARTING IN</h4>
+        <h1 id="countdown" >5</h1>
+      </div>`;
+          let count = 5;
+          let countdown = setInterval(() => {
+            document.getElementById("countdown").innerHTML = --count;
+            if (count === 0) {
+              clearInterval(countdown);
+            }
+          }, 1000);
+          setTimeout(() => {
+            document.getElementById(`alert${random_id}`).outerHTML = "";
+            hideoops()
+          }, 5000);
+        } else {
+          submitResponse(received_msg);
+        }
+      };
+
       var word = [];
       attempt = 0;
-      function apicall(word) {
-        answer = ["T", "H", "O", "S", "E"];
-        response = ["grey", "grey", "grey", "grey", "grey"];
-        for (let i = 0; i < 5; i++) {
-          if (word[i] === answer[i]) {
-            response[i] = "green";
-          } else {
-            if (answer.indexOf(word[i]) !== -1) {
-              response[i] = "yellow";
-            }
-          }
-        }
-        return response;
-      }
+      status = "starting";
+
       function submit() {
+        ws.send(JSON.stringify({ word: word, nickname: nickname }));
+      }
+      function submitResponse(response) {
         attemptAdjust = attempt * 5;
-        response = apicall(word);
         letters = document.getElementsByClassName("letter");
+        let attemptScore = 0;
         for (let i = 0; i < 5; i++) {
           letters[i + attemptAdjust].style.color = "#fff";
-          if (response[i] === "grey") {
+          if (response[i] === "x") {
             letters[i + attemptAdjust].style.backgroundColor = "#aaa";
             letters[i + attemptAdjust].style.borderColor = "#aaa";
           }
-          if (response[i] === "green") {
+          if (response[i] === "g") {
             letters[i + attemptAdjust].style.backgroundColor = "#6aaa64";
             letters[i + attemptAdjust].style.borderColor = "#6aaa64";
+            attemptScore++;
           }
-          if (response[i] === "yellow") {
+          if (response[i] === "y") {
             letters[i + attemptAdjust].style.backgroundColor = "#c9b458";
             letters[i + attemptAdjust].style.borderColor = "#c9b458";
           }
         }
         word = [];
         attempt++;
+        if (attemptScore === 5) {
+          status = "gameover";
+          resetGame();
+        }
+        if (attempt === 6) {
+          oops()
+          status = "gameover";
+        }
       }
       function updatescreen() {
         attemptAdjust = attempt * 5;
@@ -270,18 +430,20 @@
         }
       }
       function key(key) {
-        if (key === "del") {
-          word.pop();
-          updatescreen();
-        } else if (key === "enter") {
-          if (word.length === 5) {
-            submit();
-          }
-        } else {
-          key = key.toUpperCase();
-          if (word.length < 5) {
-            word.push(key);
+        if (status === "playing") {
+          if (key === "del") {
+            word.pop();
             updatescreen();
+          } else if (key === "enter") {
+            if (word.length === 5) {
+              submit();
+            }
+          } else {
+            key = key.toUpperCase();
+            if (word.length < 5) {
+              word.push(key);
+              updatescreen();
+            }
           }
         }
       }
