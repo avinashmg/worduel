@@ -2,10 +2,10 @@
 <html lang="">
   <head>
     <meta charset="utf-8" />
-    <title>WordOut</title>
+    <title>Worduel : Multiplayer Wordle</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      *{
+      * {
         font-family: sans-serif;
       }
       button {
@@ -196,7 +196,7 @@
         box-shadow: #999 0 0 10px 5px;
         display: none;
       }
-      .tryagain{
+      .tryagain {
         background-color: black;
         color: white;
         font-size: 20px;
@@ -206,7 +206,7 @@
   </head>
   <body>
     <div class="login">
-      <div class="title">WORDOUT</div>
+      <div class="title">WORDUEL</div>
       <input id="nickname" class="input" placeholder="Nickname" />
       <!-- <input class="input" type="password" placeholder="Password" /> -->
       <button onclick="login()" class="login-btn">ENTER</button>
@@ -220,7 +220,7 @@
     <div class="game">
       <div class="navigation">
         <div></div>
-        <div class="title">WORDOUT</div>
+        <div class="title">WORDUEL</div>
         <div></div>
       </div>
       <div align="center"><h3 id="score">SCORE: 0</h3></div>
@@ -308,7 +308,7 @@
     </div>
     <script>
       let nickname = "";
-      var ws = new WebSocket("ws://api.readcast.in:8080");
+      var ws = new WebSocket("ws://localhost:3000"); // REPLACE WITH SERVER ADDRESS
       function login() {
         nickname = document.getElementById("nickname").value;
         let login = document.getElementsByClassName("login")[0];
@@ -316,10 +316,10 @@
         status = "playing";
       }
       function oops() {
-        document.getElementsByClassName("alert-2")[0].style.display="block";
+        document.getElementsByClassName("alert-2")[0].style.display = "block";
       }
       function hideoops() {
-        document.getElementsByClassName("alert-2")[0].style.display="none";
+        document.getElementsByClassName("alert-2")[0].style.display = "none";
         resetGame();
       }
       function resetGame() {
@@ -338,12 +338,14 @@
       ws.onmessage = function (evt) {
         var received_msg = JSON.parse(evt.data);
         if (received_msg.type === "online") {
-          document.getElementById("online").innerHTML= `${received_msg.online} Online`
-        }else
-        if (received_msg.type === "score") {
-          document.getElementById("score").innerHTML= `SCORE: ${received_msg.score}`
-        }else
-        if (received_msg.type === "broadcast") {
+          document.getElementById(
+            "online"
+          ).innerHTML = `${received_msg.online} Online`;
+        } else if (received_msg.type === "score") {
+          document.getElementById(
+            "score"
+          ).innerHTML = `SCORE: ${received_msg.score}`;
+        } else if (received_msg.type === "broadcast") {
           random_id = random = Math.floor(Math.random() * 1000);
           document.getElementById(
             "alert"
@@ -373,7 +375,7 @@
           }, 1000);
           setTimeout(() => {
             document.getElementById(`alert${random_id}`).outerHTML = "";
-            hideoops()
+            hideoops();
           }, 5000);
         } else {
           submitResponse(received_msg);
@@ -414,7 +416,7 @@
           resetGame();
         }
         if (attempt === 6) {
-          oops()
+          oops();
           status = "gameover";
         }
       }

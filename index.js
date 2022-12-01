@@ -18,7 +18,7 @@ function randomWord() {
   return words[random].toUpperCase();
 }
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 58000 });
 const connections = {};
 const scoreboard = {};
 

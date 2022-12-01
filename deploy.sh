@@ -1,0 +1,1 @@
+sed 's|localhost:3000|'$SERVER'|#' ./public/index.html
