@@ -308,7 +308,7 @@
     </div>
     <script>
       let nickname = "";
-      var ws = new WebSocket("ws://localhost:3000"); // REPLACE WITH SERVER ADDRESS
+      var ws = new WebSocket("wss://localhost:3000"); // REPLACE WITH SERVER ADDRESS
       function login() {
         nickname = document.getElementById("nickname").value;
         let login = document.getElementsByClassName("login")[0];
@@ -368,7 +368,8 @@
       </div>`;
           let count = 5;
           let countdown = setInterval(() => {
-            document.getElementById("countdown").innerHTML = --count;
+            if (document.getElementById("countdown") !== null)
+              document.getElementById("countdown").innerHTML = --count;
             if (count === 0) {
               clearInterval(countdown);
             }
