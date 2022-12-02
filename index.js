@@ -42,6 +42,7 @@ wss.on("connection", function connection(ws) {
   });
 
   ws.on("message", function message(data) {
+    console.log(JSON.parse(data));
     let r_word = JSON.parse(data).word;
     let nickname = JSON.parse(data).nickname;
     let line_score = 0;
@@ -57,14 +58,22 @@ wss.on("connection", function connection(ws) {
       }
     }
     if (line_score === 5) {
-      if (scoreboard[nickname]) {
-        scoreboard[nickname] = Object.keys(connections).length;
+      if (scoreboard[nickname] == null) {
+        scoreboard[nickname] = Object.keys(connections).length + 10;
       } else {
-        scoreboard[nickname] += Object.keys(connections).length;
+        scoreboard[nickname] += Object.keys(connections).length + 10;
+        console.log(scoreboard);
       }
       ws.send(JSON.stringify({ type: "score", score: scoreboard[nickname] }));
       broadcast({ type: "broadcast", winner: nickname, solution: word });
       word = randomWord();
+    } else {
+      if (scoreboard[nickname] == null) {
+        scoreboard[nickname] = 0;
+      } else {
+        scoreboard[nickname] -= 1;
+        console.log(scoreboard);
+      }
     }
     ws.send(JSON.stringify(response));
     ws.send(

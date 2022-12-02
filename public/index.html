@@ -308,7 +308,7 @@
     </div>
     <script>
       let nickname = "";
-      var ws = new WebSocket("wss://localhost:3000"); // REPLACE WITH SERVER ADDRESS
+      var ws = new WebSocket("ws://localhost:58000"); // REPLACE WITH SERVER ADDRESS
       function login() {
         nickname = document.getElementById("nickname").value;
         let login = document.getElementsByClassName("login")[0];
